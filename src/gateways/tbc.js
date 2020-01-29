@@ -58,34 +58,38 @@ class TbcPaymentGateway {
 
   wrapPostApi(params) {
     return new Promise((resolve, reject) => {
-      readFile(this.certPath).then((certFile) => {
-        axios.post({
-          url: this.submitUrl,
-          params,
-          httpsAgent: new Agent({
-            ca: certFile, // because of Self-Signed certificate at payment server.
-            cert: certFile,
-            key: certFile,
-            passphrase: this.certPass,
-            requestCert: true, // maybe remove ?
-            rejectUnauthorized: true, // maybe false?
-          }),
-        }).then((res) => resolve(res)).catch((err) => reject(err));
-      }).catch((err) => reject(err));
+      readFile(this.certPath)
+        .then((certFile) => {
+          axios.post({
+            url: this.submitUrl,
+            params,
+            httpsAgent: new Agent({
+              ca: certFile, // because of Self-Signed certificate at payment server.
+              cert: certFile,
+              key: certFile,
+              passphrase: this.certPass,
+              requestCert: true, // maybe remove ?
+              rejectUnauthorized: true, // maybe false?
+            }),
+          })
+            .then((res) => resolve(res))
+            .catch((err) => reject(err));
+        })
+        .catch((err) => reject(err));
     });
   }
 
   // eslint-disable-next-line class-methods-use-this
-  parseAPiResult(result) {
+  parseApiResult(result) {
     const parsedResult = result;
     return parsedResult;
   }
 
   process(params) {
     return new Promise((resolve, reject) => {
-      const { parseAPiResult, wrapPostApi } = this;
+      const { parseApiResult, wrapPostApi } = this;
       wrapPostApi(params)
-        .then((res) => resolve(parseAPiResult(res)))
+        .then((res) => resolve(parseApiResult(res)))
         .catch((err) => reject(err));
     });
   }
@@ -254,7 +258,7 @@ class TbcPaymentGateway {
    * error                   - In case of an error
    * warning                 - In case of warning (reserved for future use).
    */
-  getTransactionResult(config) {
+  getTransactionResult(config = {}) {
     const { trans_id: transId } = config;
     const params = {
       command: 'c', // identifies a request for transaction registration

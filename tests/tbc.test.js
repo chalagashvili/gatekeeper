@@ -25,22 +25,25 @@ describe('Test gateway functionality', () => {
     beforeEach(() => {
       gateway = new TbcPaymentGateway(certPath, certPass, clientIpAddr);
     });
+
     it('Checks if api wrapper function is defined', () => {
       expect(gateway.wrapPostApi).toBeDefined();
-      expect(gateway.parseAPiResult).toBeDefined();
     });
+
     it('Checks if wrapPostApi works as expected for bad instance variable', () => {
       gateway = new TbcPaymentGateway('randomBadPath', certPass, clientIpAddr);
       gateway.wrapPostApi().catch((err) => {
         expect(err).toBeTruthy();
       });
     });
+
     it('Checks if wrapPostApi works as expected for good instance variables', () => {
       gateway.wrapPostApi().then((res) => {
         expect(res).toBeTruthy();
       });
     });
   });
+
   describe('Test process function', () => {
     beforeEach(() => {
       gateway = new TbcPaymentGateway(certPath, certPass, clientIpAddr);
@@ -49,14 +52,53 @@ describe('Test gateway functionality', () => {
     it('Checks if process function is defined', () => {
       expect(gateway.process).toBeDefined();
     });
+
     it('Checks if process fires necessary functions', () => {
+      const wrapPostApiMock = jest.fn().mockImplementation(() => {
+        const promise = new Promise(((resolve) => {
+          resolve('success_result');
+        }));
+        return promise;
+      });
+      gateway.wrapPostApi = wrapPostApiMock;
+      const params = { key: 'value' };
+      gateway.process(params).then((res) => expect(res).toEqual('success_result'));
+      expect(wrapPostApiMock).toHaveBeenCalledWith(params);
+    });
+
+    it('Checks if process catches errors gracefully from wrapPostApi', () => {
+      const wrapPostApiMock = jest.fn().mockImplementation(() => {
+        const promise = new Promise(((_, reject) => {
+          reject(new Error('test_error'));
+        }));
+        return promise;
+      });
+      gateway.wrapPostApi = wrapPostApiMock;
+      const params = { key: 'value' };
+      gateway.process(params).catch((err) => expect(err).toEqual(new Error('test_error')));
+    });
+
+    it('Checks if wrapPostApi inside process thens correctly', () => {
       const wrapPostApi = jest.fn(gateway.wrapPostApi);
       gateway.wrapPostApi = wrapPostApi;
-      const params = { key: 'value' };
-      gateway.process(params);
-      expect(wrapPostApi).toHaveBeenCalledWith(params);
+      gateway.process().then((res) => expect(res).toBeTruthy());
     });
   });
+
+  describe('Test parseApiResult function', () => {
+    beforeEach(() => {
+      gateway = new TbcPaymentGateway(certPath, certPass, clientIpAddr);
+    });
+
+    it('Checks if parseApiResult function is defined', () => {
+      expect(gateway.parseApiResult).toBeDefined();
+    });
+
+    it('Checks if parseApiResult works correctly', () => {
+      expect(gateway.parseApiResult('testResult')).toEqual('testResult');
+    });
+  });
+
   describe('Test that public functions are defined and fire proper functions', () => {
     beforeEach(() => {
       gateway = new TbcPaymentGateway(certPath, certPass, clientIpAddr);
@@ -77,6 +119,9 @@ describe('Test gateway functionality', () => {
       expect(gateway.smsStartTransaction).toBeDefined();
       gateway.smsStartTransaction(params);
       expect(gateway.process).toHaveBeenCalledWith(params);
+      jest.clearAllMocks();
+      gateway.smsStartTransaction();
+      expect(gateway.process).toHaveBeenCalled();
     });
 
     it('Tests dmsStartAuthorization function', () => {
@@ -93,6 +138,9 @@ describe('Test gateway functionality', () => {
       expect(gateway.dmsStartAuthorization).toBeDefined();
       gateway.dmsStartAuthorization(params);
       expect(gateway.process).toHaveBeenCalledWith(params);
+      gateway.process.mockClear();
+      gateway.dmsStartAuthorization();
+      expect(gateway.process).toHaveBeenCalled();
     });
 
     it('Tests dmsMakeTransaction function', () => {
@@ -109,6 +157,9 @@ describe('Test gateway functionality', () => {
       expect(gateway.dmsMakeTransaction).toBeDefined();
       gateway.dmsMakeTransaction(params);
       expect(gateway.process).toHaveBeenCalledWith(params);
+      gateway.process.mockClear();
+      gateway.dmsMakeTransaction();
+      expect(gateway.process).toHaveBeenCalled();
     });
 
     it('Tests getTransactionResult function', () => {
@@ -120,6 +171,9 @@ describe('Test gateway functionality', () => {
       expect(gateway.getTransactionResult).toBeDefined();
       gateway.getTransactionResult({ trans_id: '1' });
       expect(gateway.process).toHaveBeenCalledWith(params);
+      gateway.process.mockClear();
+      gateway.getTransactionResult();
+      expect(gateway.process).toHaveBeenCalled();
     });
 
     it('Tests reverseTransaction function', () => {
@@ -132,6 +186,9 @@ describe('Test gateway functionality', () => {
       expect(gateway.reverseTransaction).toBeDefined();
       gateway.reverseTransaction(params);
       expect(gateway.process).toHaveBeenCalledWith(params);
+      gateway.process.mockClear();
+      gateway.reverseTransaction();
+      expect(gateway.process).toHaveBeenCalled();
     });
 
     it('Tests refundTransaction function', () => {
@@ -143,6 +200,9 @@ describe('Test gateway functionality', () => {
       expect(gateway.refundTransaction).toBeDefined();
       gateway.refundTransaction(params);
       expect(gateway.process).toHaveBeenCalledWith(params);
+      gateway.process.mockClear();
+      gateway.refundTransaction();
+      expect(gateway.process).toHaveBeenCalled();
     });
 
     it('Tests creditTransaction function', () => {
@@ -154,6 +214,9 @@ describe('Test gateway functionality', () => {
       expect(gateway.creditTransaction).toBeDefined();
       gateway.creditTransaction(params);
       expect(gateway.process).toHaveBeenCalledWith(params);
+      gateway.process.mockClear();
+      gateway.creditTransaction();
+      expect(gateway.process).toHaveBeenCalled();
     });
 
     it('Tests closeDay function', () => {
@@ -181,6 +244,9 @@ describe('Test gateway functionality', () => {
       expect(gateway.smsStartTransactionWithSubscription).toBeDefined();
       gateway.smsStartTransactionWithSubscription(params);
       expect(gateway.process).toHaveBeenCalledWith(params);
+      gateway.process.mockClear();
+      gateway.smsStartTransactionWithSubscription();
+      expect(gateway.process).toHaveBeenCalled();
     });
 
     it('Tests dmsStartAuthorizationWithSubscription function', () => {
@@ -199,6 +265,9 @@ describe('Test gateway functionality', () => {
       expect(gateway.dmsStartAuthorizationWithSubscription).toBeDefined();
       gateway.dmsStartAuthorizationWithSubscription(params);
       expect(gateway.process).toHaveBeenCalledWith(params);
+      gateway.process.mockClear();
+      gateway.dmsStartAuthorizationWithSubscription();
+      expect(gateway.process).toHaveBeenCalled();
     });
 
     it('Tests subscribeWithoutFirstPayment function', () => {
@@ -216,6 +285,9 @@ describe('Test gateway functionality', () => {
       expect(gateway.subscribeWithoutFirstPayment).toBeDefined();
       gateway.subscribeWithoutFirstPayment(params);
       expect(gateway.process).toHaveBeenCalledWith(params);
+      gateway.process.mockClear();
+      gateway.subscribeWithoutFirstPayment();
+      expect(gateway.process).toHaveBeenCalled();
     });
 
     it('Tests executeSubscriptionPayment function', () => {
@@ -229,6 +301,9 @@ describe('Test gateway functionality', () => {
       expect(gateway.executeSubscriptionPayment).toBeDefined();
       gateway.executeSubscriptionPayment(params);
       expect(gateway.process).toHaveBeenCalledWith(params);
+      gateway.process.mockClear();
+      gateway.executeSubscriptionPayment();
+      expect(gateway.process).toHaveBeenCalled();
     });
   });
 });
