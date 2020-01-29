@@ -12,7 +12,7 @@
     "lint": "eslint \"**/*.js\"",
     "start": "node index.js",
     "start-dev": "nodemon index.js",
-    "cover": "node_modules/istanbul/lib/cli.js cover jest --coverage"
+    "cover": "eslint \"**/*.js\" && node_modules/istanbul/lib/cli.js cover jest --coverage"
   },
   "husky": {
     "hooks": {

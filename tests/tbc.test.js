@@ -36,14 +36,12 @@ describe('Test gateway functionality', () => {
         expect(err).toBeTruthy();
       });
     });
-
     it('Checks if wrapPostApi works as expected for good instance variables', () => {
       gateway.wrapPostApi().then((res) => {
         expect(res).toBeTruthy();
       });
     });
   });
-
   describe('Test process function', () => {
     beforeEach(() => {
       gateway = new TbcPaymentGateway(certPath, certPass, clientIpAddr);
