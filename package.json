@@ -1,6 +1,6 @@
 {
   "name": "gatekeeper",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Credit Card Payment Gateway Node JS Library for Georgian Banks",
   "main": "index.js",
   "engines": {
@@ -28,7 +28,10 @@
     "Card",
     "Gateway",
     "Credit",
-    "bank"
+    "bank",
+    "payment",
+    "processing",
+    "javascript"
   ],
   "author": "Irakli Chalagashvili",
   "license": "MIT",
